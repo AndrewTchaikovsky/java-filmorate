@@ -8,7 +8,6 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.time.Duration;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -29,7 +28,7 @@ class FilmorateApplicationTests {
         film.setName("Солтберн");
         film.setDescription("Студент Оксфорда одержимо втирается в семью богатых аристократов и постепенно захватывает их мир.");
         film.setReleaseDate(LocalDate.of(2023, 8, 31));
-        film.setDuration(Duration.ofMinutes(131));
+        film.setDuration(131);
 
         Film savedFilm = filmController.addFilm(film);
 
@@ -43,7 +42,7 @@ class FilmorateApplicationTests {
         film.setName(" ");
         film.setDescription("Студент Оксфорда одержимо втирается в семью богатых аристократов и постепенно захватывает их мир.");
         film.setReleaseDate(LocalDate.of(2023, 8, 31));
-        film.setDuration(Duration.ofMinutes(131));
+        film.setDuration(131);
 
         assertThrows(ValidationException.class, () -> filmController.addFilm(film));
     }
@@ -54,7 +53,7 @@ class FilmorateApplicationTests {
         film.setName("Солтберн");
         film.setDescription("Солтберн".repeat(100));
         film.setReleaseDate(LocalDate.of(2023, 8, 31));
-        film.setDuration(Duration.ofMinutes(131));
+        film.setDuration(131);
 
         assertThrows(ValidationException.class, () -> filmController.addFilm(film));
     }
@@ -65,7 +64,7 @@ class FilmorateApplicationTests {
         film.setName("Солтберн");
         film.setDescription("Студент Оксфорда одержимо втирается в семью богатых аристократов и постепенно захватывает их мир.");
         film.setReleaseDate(LocalDate.of(1895, 12, 27));
-        film.setDuration(Duration.ofMinutes(131));
+        film.setDuration(131);
 
         assertThrows(ValidationException.class, () -> filmController.addFilm(film));
     }
@@ -76,7 +75,7 @@ class FilmorateApplicationTests {
         film.setName("Солтберн");
         film.setDescription("Студент Оксфорда одержимо втирается в семью богатых аристократов и постепенно захватывает их мир.");
         film.setReleaseDate(LocalDate.of(2023, 8, 31));
-        film.setDuration(Duration.ofMinutes(-131));
+        film.setDuration(-131);
 
         assertThrows(ValidationException.class, () -> filmController.addFilm(film));
     }
@@ -87,7 +86,7 @@ class FilmorateApplicationTests {
         film.setName("Солтберн");
         film.setDescription("Студент Оксфорда одержимо втирается в семью богатых аристократов и постепенно захватывает их мир.");
         film.setReleaseDate(LocalDate.of(2023, 8, 31));
-        film.setDuration(Duration.ofMinutes(131));
+        film.setDuration(131);
 
         Film savedFilm = filmController.addFilm(film);
 
@@ -96,12 +95,12 @@ class FilmorateApplicationTests {
         update.setName("Saltburn");
         update.setDescription("An Oxford student obsessively ingratiates himself into a wealthy aristocratic family and gradually takes over their world.");
         update.setReleaseDate(LocalDate.of(2023, 11, 17));
-        update.setDuration(Duration.ofMinutes(132));
+        update.setDuration(132);
 
         Film updatedFilm = filmController.updateFilm(update);
 
         assertEquals("Saltburn", updatedFilm.getName());
-        assertEquals(132, updatedFilm.getDuration().toMinutes());
+        assertEquals(132, updatedFilm.getDuration());
     }
 
     @Test
