@@ -1,8 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
@@ -65,7 +63,7 @@ public class FilmController {
                 log.warn("Ошибка валидации фильма: Дата релиза — не раньше 28 декабря 1895 года");
                 throw new ValidationException("Дата релиза — не раньше 28 декабря 1895 года");
             }
-            if (newFilm.getDuration() == null || newFilm.getDuration().isZero() ||newFilm.getDuration().isNegative()) {
+            if (newFilm.getDuration() == null || newFilm.getDuration().isZero() || newFilm.getDuration().isNegative()) {
                 log.warn("Ошибка валидации фильма: Продолжительность фильма должна быть положительным числом");
                 throw new ValidationException("Продолжительность фильма должна быть положительным числом");
             }
