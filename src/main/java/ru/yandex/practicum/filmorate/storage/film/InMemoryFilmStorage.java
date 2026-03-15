@@ -4,11 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Component
 @Slf4j
@@ -47,6 +45,31 @@ public class InMemoryFilmStorage implements FilmStorage {
     public Film getById(Long id) {
         return Optional.ofNullable(films.get(id))
                 .orElseThrow(() -> new NotFoundException("Фильм не найден"));
+    }
+
+    @Override
+    public void saveGenres(Film film) {
+        throw new UnsupportedOperationException("Не поддерживается в InMemoryFilmStorage.");
+    }
+
+    @Override
+    public Set<Genre> getGenres(long filmId) {
+        throw new UnsupportedOperationException("Не поддерживается в InMemoryFilmStorage.");
+    }
+
+    @Override
+    public Set<Long> getLikes(long filmId) {
+        throw new UnsupportedOperationException("Не поддерживается в InMemoryFilmStorage.");
+    }
+
+    @Override
+    public void addLike(long filmId, long userId) {
+        throw new UnsupportedOperationException("Не поддерживается в InMemoryFilmStorage.");
+    }
+
+    @Override
+    public void removeLike(long filmId, long userId) {
+        throw new UnsupportedOperationException("Не поддерживается в InMemoryFilmStorage.");
     }
 
     private long getNextId() {

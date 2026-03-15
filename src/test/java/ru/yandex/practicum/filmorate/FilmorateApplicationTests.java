@@ -11,6 +11,8 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
+import ru.yandex.practicum.filmorate.storage.mpa.MpaStorage;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -25,12 +27,14 @@ class FilmorateApplicationTests {
     private UserController userController;
     private UserStorage userStorage;
     private UserService userService;
+    private MpaStorage mpaStorage;
+    private GenreStorage genreStorage;
 
     @BeforeEach
     void setup() {
         filmStorage = new InMemoryFilmStorage();
         userStorage = new InMemoryUserStorage();
-        filmService = new FilmService(filmStorage, userStorage);
+        filmService = new FilmService(filmStorage, userStorage, mpaStorage, genreStorage);
         userService = new UserService(userStorage);
         filmController = new FilmController(filmService);
         userController = new UserController(userService);
