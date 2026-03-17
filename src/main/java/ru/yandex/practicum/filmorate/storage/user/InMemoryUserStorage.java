@@ -61,6 +61,16 @@ public class InMemoryUserStorage implements UserStorage {
         throw new UnsupportedOperationException("Не поддерживается в InMemoryUserStorage.");
     }
 
+    @Override
+    public List<User> getUsersByIds(Collection<Long> userIds) {
+        throw new UnsupportedOperationException("Не поддерживается в InMemoryUserStorage.");
+    }
+
+    @Override
+    public List<User> getCommonFriends(Long userId, Long otherId) {
+        throw new UnsupportedOperationException("Не поддерживается в InMemoryUserStorage.");
+    }
+
     private long getNextId() {
         long currentMaxId = users.keySet()
                 .stream()

@@ -47,12 +47,10 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .orElseThrow(() -> new NotFoundException("Фильм не найден"));
     }
 
-    @Override
     public void saveGenres(Film film) {
         throw new UnsupportedOperationException("Не поддерживается в InMemoryFilmStorage.");
     }
 
-    @Override
     public Set<Genre> getGenres(long filmId) {
         throw new UnsupportedOperationException("Не поддерживается в InMemoryFilmStorage.");
     }
@@ -69,6 +67,11 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public void removeLike(long filmId, long userId) {
+        throw new UnsupportedOperationException("Не поддерживается в InMemoryFilmStorage.");
+    }
+
+    @Override
+    public List<Film> getPopularFilms(int count) {
         throw new UnsupportedOperationException("Не поддерживается в InMemoryFilmStorage.");
     }
 

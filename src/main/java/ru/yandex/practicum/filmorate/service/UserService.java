@@ -54,22 +54,17 @@ public class UserService {
 
     public List<User> getFriends(Long userId) {
         userStorage.getById(userId);
-        return userStorage.getFriendsIds(userId).stream()
-                .map(userStorage::getById)
-                .toList();
+
+        Set<Long> friendIds = userStorage.getFriendsIds(userId);
+
+        return userStorage.getUsersByIds(friendIds);
     }
 
     public List<User> getCommonFriends(Long userId, Long otherId) {
         userStorage.getById(userId);
         userStorage.getById(otherId);
 
-        Set<Long> userFriends = userStorage.getFriendsIds(userId);
-        Set<Long> otherFriends = userStorage.getFriendsIds(otherId);
-
-        return userFriends.stream()
-                .filter(otherFriends::contains)
-                .map(userStorage::getById)
-                .toList();
+        return userStorage.getCommonFriends(userId, otherId);
     }
 
     private void validateUser(User user) {

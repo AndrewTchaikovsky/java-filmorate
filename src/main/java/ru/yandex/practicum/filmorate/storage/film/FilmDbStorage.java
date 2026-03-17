@@ -10,10 +10,7 @@ import ru.yandex.practicum.filmorate.storage.mappers.GenreRowMapper;
 import ru.yandex.practicum.filmorate.storage.repository.BaseRepository;
 
 import java.sql.Date;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Repository
 public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
@@ -47,6 +44,23 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     private static final String ADD_LIKE = "INSERT INTO likes (film_id, user_id) VALUES (?, ?)";
     private static final String DELETE_LIKE = "DELETE FROM likes WHERE film_id = ? AND user_id = ?";
     private static final String GET_LIKES = "SELECT user_id FROM likes WHERE film_id = ?";
+    private static final String GET_ALL_GENRES_FOR_FILMS =
+            """
+                    SELECT fg.id, g,id, g.name
+                    FROM film_genres fg
+                    JOIN genres g ON fg.genre_id = g.id
+                    """;
+    private static final String GET_ALL_LIKES_FOR_FILMS = "SELECT film_id, user_id FROM likes";
+    private static final String GET_POPULAR_FILMS =
+            """
+                    SELECT f.*, m.id AS mpa_id, m.name AS mpa_name
+                    FROM films f
+                    JOIN mpa_ratings m ON f.mpa_id = m.id
+                    LEFT JOIN likes l ON f.id = l.film_id
+                    GROUP BY f.id, m.id
+                    ORDER BY COUNT(l.user_id) DESC
+                    LIMIT ?
+                    """;
 
     public FilmDbStorage(JdbcTemplate jdbc) {
         super(jdbc, new FilmRowMapper());
@@ -84,9 +98,11 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     @Override
     public Collection<Film> getFilms() {
         List<Film> films = findMany(FIND_ALL_QUERY);
+        Map<Long, Set<Genre>> filmGenres = getAllGenresForFilms();
+        Map<Long, Set<Long>> filmLikes = getAllLikesForFilms();
         for (Film film : films) {
-            film.setGenres(getGenres(film.getId()));
-            film.setLikes(getLikes(film.getId()));
+            film.setGenres(filmGenres.getOrDefault(film.getId(), Collections.emptySet()));
+            film.setLikes(filmLikes.getOrDefault(film.getId(), Collections.emptySet()));
         }
         return films;
     }
@@ -101,16 +117,21 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
     }
 
-    public void saveGenres(Film film) {
+    private void saveGenres(Film film) {
         if (film.getGenres() == null || film.getGenres().isEmpty()) {
             return;
         }
+
+        List<Object[]> batchArgs = new ArrayList<>();
         for (Genre genre : film.getGenres()) {
-            update(ADD_GENRE, film.getId(), genre.getId());
+            batchArgs.add(new Object[]{film.getId(), genre.getId()});
         }
+
+        jdbc.batchUpdate(ADD_GENRE, batchArgs);
+
     }
 
-    public Set<Genre> getGenres(long filmId) {
+    private Set<Genre> getGenres(long filmId) {
         return new HashSet<>(jdbc.query(GET_FILM_GENRES, genreRowMapper, filmId));
     }
 
@@ -124,6 +145,43 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
     public void removeLike(long filmId, long userId) {
         jdbc.update(DELETE_LIKE, filmId, userId);
+    }
+
+    private Map<Long, Set<Genre>> getAllGenresForFilms() {
+        return jdbc.query(GET_ALL_GENRES_FOR_FILMS, rs -> {
+            Map<Long, Set<Genre>> map = new HashMap<>();
+            while (rs.next()) {
+                long filmId = rs.getLong("film_id");
+                Genre genre = new Genre();
+                genre.setId(rs.getInt("id"));
+                genre.setName(rs.getString("name"));
+                map.computeIfAbsent(filmId, k -> new HashSet<>()).add(genre);
+            }
+            return map;
+        });
+    }
+
+    private Map<Long, Set<Long>> getAllLikesForFilms() {
+        return jdbc.query(GET_ALL_LIKES_FOR_FILMS, rs -> {
+            Map<Long, Set<Long>> map = new HashMap<>();
+            while (rs.next()) {
+                long filmId = rs.getLong("film_id");
+                long userId = rs.getLong("user_id");
+                map.computeIfAbsent(filmId, k -> new HashSet<>()).add(userId);
+            }
+            return map;
+        });
+    }
+
+    public List<Film> getPopularFilms(int count) {
+        List<Film> films = jdbc.query(GET_POPULAR_FILMS, new FilmRowMapper(), count);
+
+        for (Film film : films) {
+            film.setGenres(getGenres(film.getId()));
+            film.setLikes(getLikes(film.getId()));
+        }
+
+        return films;
     }
 
 }
