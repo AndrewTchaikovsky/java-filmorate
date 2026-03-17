@@ -46,9 +46,10 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     private static final String GET_LIKES = "SELECT user_id FROM likes WHERE film_id = ?";
     private static final String GET_ALL_GENRES_FOR_FILMS =
             """
-                    SELECT fg.id, g,id, g.name
+                    SELECT fg.film_id, g.id, g.name
                     FROM film_genres fg
                     JOIN genres g ON fg.genre_id = g.id
+                    ORDER BY fg.film_id, g.id
                     """;
     private static final String GET_ALL_LIKES_FOR_FILMS = "SELECT film_id, user_id FROM likes";
     private static final String GET_POPULAR_FILMS =
@@ -98,10 +99,10 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     @Override
     public Collection<Film> getFilms() {
         List<Film> films = findMany(FIND_ALL_QUERY);
-        Map<Long, Set<Genre>> filmGenres = getAllGenresForFilms();
+        Map<Long, List<Genre>> filmGenres = getAllGenresForFilms();
         Map<Long, Set<Long>> filmLikes = getAllLikesForFilms();
         for (Film film : films) {
-            film.setGenres(filmGenres.getOrDefault(film.getId(), Collections.emptySet()));
+            film.setGenres(filmGenres.getOrDefault(film.getId(), Collections.emptyList()));
             film.setLikes(filmLikes.getOrDefault(film.getId(), Collections.emptySet()));
         }
         return films;
@@ -131,8 +132,8 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
     }
 
-    private Set<Genre> getGenres(long filmId) {
-        return new HashSet<>(jdbc.query(GET_FILM_GENRES, genreRowMapper, filmId));
+    private List<Genre> getGenres(long filmId) {
+        return new ArrayList<>(jdbc.query(GET_FILM_GENRES, genreRowMapper, filmId));
     }
 
     public Set<Long> getLikes(long filmId) {
@@ -147,15 +148,15 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         jdbc.update(DELETE_LIKE, filmId, userId);
     }
 
-    private Map<Long, Set<Genre>> getAllGenresForFilms() {
+    private Map<Long, List<Genre>> getAllGenresForFilms() {
         return jdbc.query(GET_ALL_GENRES_FOR_FILMS, rs -> {
-            Map<Long, Set<Genre>> map = new HashMap<>();
+            Map<Long, List<Genre>> map = new HashMap<>();
             while (rs.next()) {
                 long filmId = rs.getLong("film_id");
                 Genre genre = new Genre();
                 genre.setId(rs.getInt("id"));
                 genre.setName(rs.getString("name"));
-                map.computeIfAbsent(filmId, k -> new HashSet<>()).add(genre);
+                map.computeIfAbsent(filmId, k -> new ArrayList<>()).add(genre);
             }
             return map;
         });

@@ -25,10 +25,16 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
             """
                     SELECT u.*
                     FROM users u
-                    JOIN friendships f1 ON u.id = f1.user_id
-                    JOIN friendships f2 ON u.id = f2.user_id
-                    WHERE f1.user_id = ?
-                    AND f2.user_id = ?
+                    WHERE u.id IN (
+                        SELECT f1.friend_id
+                        FROM friendships f1
+                        WHERE f1.user_id = ?
+                    )
+                    AND u.id IN (
+                        SELECT f2.friend_id
+                        FROM friendships f2
+                        WHERE f2.user_id = ?
+                    )
                     """;
 
     public UserDbStorage(JdbcTemplate jdbc) {

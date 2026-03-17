@@ -6,7 +6,7 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.mappers.GenreRowMapper;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -37,11 +37,11 @@ public class GenreDbStorage implements GenreStorage {
         return result.get(0);
     }
 
-    public Set<Genre> getGenresByIds(Set<Integer> genreIds) {
+    public List<Genre> getGenresByIds(Set<Integer> genreIds) {
         String placeholder = genreIds.stream()
                 .map(id -> "?")
                 .collect(Collectors.joining(","));
         String query = String.format(GET_GENRES_BY_IDS, placeholder);
-        return new HashSet<>(jdbc.query(query, genreRowMapper, genreIds.toArray()));
+        return new ArrayList<>(jdbc.query(query, genreRowMapper, genreIds.toArray()));
     }
 }

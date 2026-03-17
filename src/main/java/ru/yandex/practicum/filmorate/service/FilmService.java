@@ -46,7 +46,7 @@ public class FilmService {
                     .map(Genre::getId)
                     .collect(Collectors.toSet());
 
-            Set<Genre> genres = genreStorage.getGenresByIds(genreIds);
+            List<Genre> genres = genreStorage.getGenresByIds(genreIds);
 
             if (genres.size() != genreIds.size()) {
                 throw new NotFoundException("Жанр не найден");
