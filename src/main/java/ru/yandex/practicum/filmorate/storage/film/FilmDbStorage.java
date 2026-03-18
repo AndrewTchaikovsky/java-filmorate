@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.storage.repository.BaseRepository;
 
 import java.sql.Date;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Repository
 public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
@@ -62,6 +63,15 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
                     ORDER BY COUNT(l.user_id) DESC
                     LIMIT ?
                     """;
+    private static final String GET_GENRES_FOR_FILMS =
+            """
+                    SELECT fg.film_id, g.id, g.name
+                    FROM film_genres fg
+                    JOIN genres g ON fg.genre_id = g.id
+                    WHERE fg.film_id IN (%s)
+                    ORDER BY fg.film_id, g.id
+                    """;
+    private static final String GET_LIKES_FOR_FILMS = "SELECT film_id, user_id FROM likes WHERE film_id IN (%s)";
 
     public FilmDbStorage(JdbcTemplate jdbc) {
         super(jdbc, new FilmRowMapper());
@@ -102,8 +112,8 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         Map<Long, List<Genre>> filmGenres = getAllGenresForFilms();
         Map<Long, Set<Long>> filmLikes = getAllLikesForFilms();
         for (Film film : films) {
-            film.setGenres(filmGenres.getOrDefault(film.getId(), Collections.emptyList()));
-            film.setLikes(filmLikes.getOrDefault(film.getId(), Collections.emptySet()));
+            film.setGenres(filmGenres.getOrDefault(film.getId(), List.of()));
+            film.setLikes(filmLikes.getOrDefault(film.getId(), Set.of()));
         }
         return films;
     }
@@ -177,12 +187,69 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     public List<Film> getPopularFilms(int count) {
         List<Film> films = jdbc.query(GET_POPULAR_FILMS, new FilmRowMapper(), count);
 
+        List<Long> filmIds = films.stream()
+                .map(Film::getId)
+                .toList();
+
+        Map<Long, List<Genre>> filmGenres = getGenresForFilms(filmIds);
+        Map<Long, Set<Long>> filmLikes = getLikesForFilms(filmIds);
+
         for (Film film : films) {
-            film.setGenres(getGenres(film.getId()));
-            film.setLikes(getLikes(film.getId()));
+            film.setGenres(filmGenres.getOrDefault(film.getId(), List.of()));
+            film.setLikes(filmLikes.getOrDefault(film.getId(), Set.of()));
         }
 
         return films;
+    }
+
+    private Map<Long, Set<Long>> getLikesForFilms(List<Long> filmIds) {
+        if (filmIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        String placeholder = filmIds.stream()
+                .map(id -> "?")
+                .collect(Collectors.joining(","));
+
+        String query = String.format(GET_LIKES_FOR_FILMS, placeholder);
+
+        return jdbc.query(query, filmIds.toArray(), rs -> {
+            Map<Long, Set<Long>> map = new HashMap<>();
+
+            while (rs.next()) {
+                long filmId = rs.getLong("film_id");
+                long userId = rs.getLong("user_id");
+                map.computeIfAbsent(filmId, k -> new HashSet<>()).add(userId);
+            }
+            return map;
+        });
+    }
+
+    private Map<Long, List<Genre>> getGenresForFilms(List<Long> filmIds) {
+        if (filmIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        String placeholder = filmIds.stream()
+                .map(id -> "?")
+                .collect(Collectors.joining(","));
+
+        String query = String.format(GET_GENRES_FOR_FILMS, placeholder);
+
+        return jdbc.query(query, filmIds.toArray(), rs -> {
+            Map<Long, List<Genre>> map = new HashMap<>();
+
+            while (rs.next()) {
+                long filmId = rs.getLong("film_id");
+
+                Genre genre = new Genre();
+                genre.setId(rs.getInt("id"));
+                genre.setName(rs.getString("name"));
+
+                map.computeIfAbsent(filmId, k -> new ArrayList<>()).add(genre);
+            }
+            return map;
+        });
     }
 
 }

@@ -54,8 +54,7 @@ public class FilmService {
 
             film.setGenres(genres);
         }
-        Film savedFilm = filmStorage.addFilm(film);
-        return filmStorage.getById(savedFilm.getId());
+        return filmStorage.addFilm(film);
     }
 
     public Film updateFilm(Film newFilm) {
