@@ -5,10 +5,7 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Component
 @Slf4j
@@ -47,6 +44,31 @@ public class InMemoryUserStorage implements UserStorage {
     public User getById(Long id) {
         return Optional.ofNullable(users.get(id))
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+    }
+
+    @Override
+    public void addFriend(Long userId, Long friendId) {
+        throw new UnsupportedOperationException("Не поддерживается в InMemoryUserStorage.");
+    }
+
+    @Override
+    public void removeFriend(Long userId, Long friendId) {
+        throw new UnsupportedOperationException("Не поддерживается в InMemoryUserStorage.");
+    }
+
+    @Override
+    public Set<Long> getFriendsIds(Long userId) {
+        throw new UnsupportedOperationException("Не поддерживается в InMemoryUserStorage.");
+    }
+
+    @Override
+    public List<User> getUsersByIds(Collection<Long> userIds) {
+        throw new UnsupportedOperationException("Не поддерживается в InMemoryUserStorage.");
+    }
+
+    @Override
+    public List<User> getCommonFriends(Long userId, Long otherId) {
+        throw new UnsupportedOperationException("Не поддерживается в InMemoryUserStorage.");
     }
 
     private long getNextId() {
